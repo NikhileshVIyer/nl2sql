@@ -12,7 +12,7 @@ from llm_confidence.logprobs_handler import LogprobsHandler
 
 # --------------------------------
 
-OPENAI_API_KEY = st.secrets["openai_api_key"]
+OPENAI_API_KEY = "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"
 MODEL = st.secrets["model"]
 
 PG_HOST = st.secrets["pg_host"]
