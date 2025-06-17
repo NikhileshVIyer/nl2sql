@@ -13,7 +13,7 @@ from llm_confidence.logprobs_handler import LogprobsHandler
 # --------------------------------
 
 OPENAI_API_KEY = st.secrets["openai_api_key"]
-BASE_URL = st.secrets["base_url"]
+#BASE_URL = st.secrets["base_url"]
 MODEL = st.secrets["model"]
 
 PG_HOST = st.secrets["pg_host"]
@@ -24,7 +24,7 @@ PG_PASSWORD = st.secrets["pg_password"]
 
 
 client = OpenAI(
-    base_url=BASE_URL,
+    #base_url=BASE_URL,
     api_key=OPENAI_API_KEY,
 )
 
