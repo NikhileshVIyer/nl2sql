@@ -6,7 +6,7 @@ import requests
 
 # ----------------- Hugging Face Setup -----------------
 HF_API_KEY = st.secrets["hf_api_key"]
-HF_MODEL_ENDPOINT = "https://api-inference.huggingface.co/models/defog/sqlcoder"
+HF_MODEL_ENDPOINT = "https://huggingface.co/defog/llama-3-sqlcoder-8b"
 
 headers = {
     "Authorization": f"Bearer {HF_API_KEY}",
