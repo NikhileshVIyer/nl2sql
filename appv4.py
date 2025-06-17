@@ -120,7 +120,7 @@ def extract_sql_query(response_text):
         return matches.group(1).strip()
     
     # If no match with SQL tag, try without specifying language
-    general_pattern = r"```\n?(.*?)```"Today
+    general_pattern = r"```\n?(.*?)```"
     matches = re.search(general_pattern, response_text, re.DOTALL)
     
     if matches:
