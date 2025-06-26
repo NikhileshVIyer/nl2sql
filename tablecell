@@ -1,0 +1,70 @@
+import cv2
+import pytesseract
+import numpy as np
+import pandas as pd
+
+# Load the table image
+img = cv2.imread("detected_table.png", cv2.IMREAD_GRAYSCALE)
+img_bin = cv2.adaptiveThreshold(~img, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
+                                cv2.THRESH_BINARY, 15, -10)
+
+# Detect horizontal and vertical lines
+horizontal = img_bin.copy()
+vertical = img_bin.copy()
+scale = 15  # tuning parameter
+
+horiz_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (img.shape[1] // scale, 1))
+horiz_lines = cv2.erode(horizontal, horiz_kernel, iterations=1)
+horiz_lines = cv2.dilate(horiz_lines, horiz_kernel, iterations=1)
+
+vert_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, img.shape[0] // scale))
+vert_lines = cv2.erode(vertical, vert_kernel, iterations=1)
+vert_lines = cv2.dilate(vert_lines, vert_kernel, iterations=1)
+
+# Combine line masks
+table_mask = cv2.add(horiz_lines, vert_lines)
+
+# Find contours = cell candidates
+contours, _ = cv2.findContours(table_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+cells = []
+for cnt in contours:
+    x, y, w, h = cv2.boundingRect(cnt)
+    if w > 30 and h > 20:  # filter out noise
+        cells.append((x, y, w, h))
+
+# Sort by rows and columns
+cells = sorted(cells, key=lambda b: (b[1], b[0]))  # sort top-to-bottom, then left-to-right
+
+# Group into rows
+rows = []
+current_row = []
+threshold = 10  # vertical tolerance
+prev_y = None
+
+for cell in cells:
+    x, y, w, h = cell
+    if prev_y is None or abs(y - prev_y) <= threshold:
+        current_row.append(cell)
+    else:
+        rows.append(sorted(current_row, key=lambda b: b[0]))
+        current_row = [cell]
+    prev_y = y
+if current_row:
+    rows.append(sorted(current_row, key=lambda b: b[0]))
+
+# OCR each cell and build table
+ocr_table = []
+for row in rows:
+    ocr_row = []
+    for x, y, w, h in row:
+        roi = img[y:y+h, x:x+w]
+        text = pytesseract.image_to_string(roi, config="--psm 7").strip()
+        ocr_row.append(text)
+    ocr_table.append(ocr_row)
+
+# Convert to DataFrame and save
+df = pd.DataFrame(ocr_table)
+df.to_csv("cell_extracted_table.csv", index=False, header=False)
+
+print("✅ Table with OCR per cell saved as 'cell_extracted_table.csv'")
